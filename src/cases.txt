@@ -1,0 +1,2 @@
+---> si suppression d'un bot : order passe à cancel et bot tente de repasser l'ordre tout en le supprimant du dico 
+il faudrait vérifier que les ordres ouverts soient ceux des bots dans le dico
