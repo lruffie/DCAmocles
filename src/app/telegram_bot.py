@@ -31,7 +31,7 @@ class Snitch :
             self.updater.bot.send_message(chat_id=self.chat_id,text="Sorry I did not understand your request. Press /help for more info.")
 
     def start_command(self, update, context):
-        self.updater.bot.send_message(chat_id=self.chat_id,text='hello start, use /help for more info')
+        self.updater.bot.send_message(chat_id=self.chat_id,text='Hello start, use /help for more info')
         self.updater.bot.send_message('ze parti')
 
     def help_command(self, update, context):
@@ -41,10 +41,7 @@ class Snitch :
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /delete to delete bot with syntax symb:usdt')
         # self.confirmation(update, context)
 
-
-
     #### MAIN FUNCTIONS ####
-
     def create_command(self, update, context):
         "add exception raising and check for existing bot and store new bot params and ask for user confirmation"
         idx=(str(update.message.text)).find(' ')
@@ -74,7 +71,8 @@ class Snitch :
                     self.updater.bot.send_message(chat_id=self.chat_id,text='Error :'+str(err))
             else :
                 self.updater.bot.send_message(chat_id=self.chat_id,text='Bot already exists please update')
-
+        else : 
+            self.updater.bot.send_message(chat_id=self.chat_id,text='Invalid Expression : Check /help section for more info')
 
 
     def update_command(self, update, context):
@@ -121,7 +119,7 @@ class Snitch :
 
         elif self.check_expression_bis(regex_delta1, mess, update):
             data=self.tel_parser(mess, ['symb','delta'])
-            self.updater.bot.send_message(chat_id=self.chat_id,text='you want to update a bot with delta parameter'+' '+str(data))
+            self.updater.bot.send_message(chat_id=self.chat_id,text='You want to update a bot with delta parameter'+' '+str(data))
             data['symb'] = data['symb'].upper()
 
             if self.check_exist(data['symb']) == True :
@@ -143,11 +141,11 @@ class Snitch :
         mess=(str(update.message.text))[idx+1:]
     
         print(mess)
-        self.updater.bot.send_message(chat_id=self.chat_id,text='you want to get existing bots params')
+        self.updater.bot.send_message(chat_id=self.chat_id,text='You want to get existing bots parameters')
         try :
             info=self.get_bots()
             if len(info)==0 :
-                self.updater.bot.send_message(chat_id=self.chat_id,text='No bots running')
+                self.updater.bot.send_message(chat_id=self.chat_id,text='No bots running !')
             else : 
                 for i in info:
                     self.updater.bot.send_message(chat_id=self.chat_id,text='Bots parameters  :  '+ str(i))
@@ -165,14 +163,16 @@ class Snitch :
             data=self.tel_parser(mess, ['symb'])
             print(data)
             data['symb'] = data['symb'].upper()
-            self.updater.bot.send_message(chat_id=self.chat_id,text='you want to delete a bot actual params with these parameters'+' '+str(data))
+            self.updater.bot.send_message(chat_id=self.chat_id,text='You want to delete a bot actual params with these parameters'+' '+str(data))
             try :
                 delete_return = self.delete_bot(data['symb'])
-                self.updater.bot.send_message(chat_id=self.chat_id,text='Bot sucessfully deleted')
+                self.updater.bot.send_message(chat_id=self.chat_id,text='Bot sucessfully deleted !')
                 self.updater.bot.send_message(chat_id=self.chat_id,text=str(delete_return))
             except Exception as err:
                 err = str(err)
                 self.updater.bot.send_message(chat_id=self.chat_id,text='Error'+err)
+        else : 
+            self.updater.bot.send_message(chat_id=self.chat_id,text='Invalid Expression : Check /help section for more info')
 
     def stop_command(self, update, context):
         "add regex control and exception raising and check for bot exists and ask for confirmation"
@@ -189,7 +189,6 @@ class Snitch :
             print("Valid expression")
             return True
         else:
-            self.updater.bot.send_message(chat_id=self.chat_id,text='Invalid Expression : Check /help section for more info')
             return False
 
     def check_expression_bis(self, regex, input, update):

@@ -15,7 +15,11 @@ API_KEY_PUBLIC=os.environ["API_KEY_TEST_NET"]
 API_KEY_SECRET=os.environ["API_KEY_TEST_NET_SECRET"]
 
 #### LOAD PREVIOUS BOTS ####
-pickle_file='store.pkl'
+print(os.listdir())
+path=os.getcwd()
+print(path)
+pickle_file='src/app'+'/store.pkl'
+print(pickle_file)
 
 ### load ###
 with open( pickle_file, "rb" ) as file_handler:
@@ -40,7 +44,7 @@ def get_bots():
     global BotDict
     list=[]
     for key, value in BotDict.items():
-        list.append([key, value.level, value.amount, value.side, value. delta])
+        list.append([key, "level :",value.level,  "amount :",value.amount,  "side :",value.side,  "delta :",value. delta, "order_price :",value.delta])
     return list
 
 def create_bot(level, asset, base, amount, side, delta):
@@ -90,7 +94,8 @@ async def manage_bots():
     global BotDict
     while True:
         await asyncio.sleep(10)
-        print(BotDict)
+        print('---------------------------------------')
+        # print(BotDict)
         with open( pickle_file, "wb" ) as file_handler:
             pickle.dump(BotDict, file_handler)
 
@@ -104,7 +109,8 @@ async def manage_bots():
             print(err)
             TelBot.external_message(str(err))
             
-            
+async def pinger():
+    "create ping function to send message after x time, then if ping not received force reboot of script"
 
 async def principal(TelBot):
     global BotDict
