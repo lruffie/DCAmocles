@@ -18,7 +18,7 @@ API_KEY_SECRET=os.environ["API_KEY_TEST_NET_SECRET"]
 print(os.listdir())
 path=os.getcwd()
 print(path)
-pickle_file='src/app'+'/store.pkl'
+pickle_file=path+'/store.pkl'
 print(pickle_file)
 
 ### load ###
@@ -35,6 +35,7 @@ with open( pickle_file, "rb" ) as file_handler:
 def check_exist(x):
     global BotDict
     
+    x=x.upper()
     if x in BotDict.keys() :
         return True
     else :
@@ -44,7 +45,7 @@ def get_bots():
     global BotDict
     list=[]
     for key, value in BotDict.items():
-        list.append([key, "level :",value.level,  "amount :",value.amount,  "side :",value.side,  "delta :",value. delta, "order_price :",value.delta])
+        list.append([key, "level :",value.level,  "amount :",value.amount,  "side :",value.side,  "delta :",value.delta, "order_price :",value.order['price']])
     return list
 
 def create_bot(level, asset, base, amount, side, delta):
@@ -55,21 +56,22 @@ def create_bot(level, asset, base, amount, side, delta):
     new_bot =  binance_bot.Bot(level=level,asset=asset,  base=base, amount=amount, side=side, delta=delta, api_key=API_KEY_PUBLIC, api_secret=API_KEY_SECRET)
 
     BotDict.update({str(symb):new_bot})
+    return new_bot
 
 def update_bot(symb, **kwargs):
     global BotDict
     for key, value in kwargs.items():
         if key == 'level':
             object = BotDict[symb]
-            object.level = value
+            object.level = float(value)
             BotDict.update({str(symb): object})
         elif key == 'amount':
             object = BotDict[symb]
-            object.amount = value
+            object.amount = float(value)
             BotDict.update({str(symb): object})
         elif key == 'delta':
             object = BotDict[symb]
-            object.delta = value
+            object.delta = float(value)
             BotDict.update({str(symb): object})
 
     # actual bot needs to be updated --> orders changed

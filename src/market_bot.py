@@ -14,10 +14,13 @@ client = Spot(base_url='https://testnet.binance.vision',key=os.environ["API_KEY_
 # place first order :
 
 
-price=3000
-symb="ETHUSDT"
-amount=0.01
-order=client.new_order(symbol=symb, side="BUY", type="MARKET", quantity=amount)
+# price=3000
+# symb="ETHUSDT"
+# amount=0.01
+# order=client.new_order(symbol=symb, side="BUY", type="MARKET", quantity=amount)
+# print(order)
+
+order= client.get_open_orders()
 print(order)
 
 

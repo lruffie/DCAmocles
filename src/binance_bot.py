@@ -7,10 +7,11 @@ import time
 import asyncio
 
 load_dotenv()
+
 class Bot:
     def __init__(self, level, amount, asset, base, side, delta, api_key, api_secret):
         self.level = float(level)
-        self.amount = amount
+        self.amount = float(amount)
         self.asset = asset
         self.base = base
         self.symbol = (asset + base).upper()
@@ -24,12 +25,15 @@ class Bot:
                 self.info = pair
                 self.precision = pair['baseAssetPrecision']
 
+
+        #disjonction de cas entre sl et buy back au lancement du bot
         # place first order :
         price=self.level*(1-self.delta/100)
         price = "{:0.0{}f}".format(price, self.precision)
         stopPrice=price
         order=self.client.new_order(symbol=self.symbol, side=self.side, type="STOP_LOSS_LIMIT", quantity=float(self.amount) ,price=float(price), stopPrice=float(stopPrice),timeInForce='GTC')
         self.order_id=order['orderId']
+        self.order=order
         print(order)
 
 
@@ -57,7 +61,6 @@ class Bot:
             return {"free": self.free_amount, "locked": self.locked_amount}
         except Exception as error:
             return error
-
 
     ##### ORDERS #####
     def place_order(self):
@@ -163,8 +166,15 @@ class Bot:
     ##### BOT #####
     def checks(self):
         self.counter=0 #on met un counter pour éviter les pbms de retours de l'api
-        order_tracked = self.track_order()
-        self.order = order_tracked
+        try :
+            order_tracked = self.track_order()
+            self.order = order_tracked
+        except  binance.error.ClientError as err :
+            print(err.error_message)
+            if err.error_message == 'Order does not exist.' :
+                print('unknow order detected, placing new order')
+                order = self.place_order()
+                return "unknow order detected, placing new order   " + str(order)
 
         print('symbol :',order_tracked['symbol'], 'type :', order_tracked['type'], ' price_order:', order_tracked['price'], 'level :', self.level, 'status :', order_tracked['status'], 'side_order :', order_tracked['side'], 'side_bot :',self.side)
         # print('type :', order_tracked['type'], ' price_order:', order_tracked['price'], 'status :', order_tracked['status'], 'side_order :', order_tracked['side'], 'side_bot :',self.side)
@@ -182,7 +192,7 @@ class Bot:
                 if err.error_message == 'Stop price would trigger immediately.' :
                     print('buy back at market now !')
                     order = self.place_order_market()
-            return "Stop Loss filled, placing new order to buy back!" + str(order)
+            return "Stop Loss filled, placing new order to buy back!   " + str(order)
 
         if self.side == "BUY" and order_tracked['status'] == 'FILLED' and order_tracked['type'] != 'MARKET':
             self.side = "SELL"
@@ -193,22 +203,22 @@ class Bot:
                 if err.error_message == 'Stop price would trigger immediately.' :
                     print('sell off at market now !')
                     order = self.place_order_market()
-            return "Take Profit filled, placing new order to cut losses!" + str(order)
+            return "Take Profit filled, placing new order to cut losses!   " + str(order)
            
 
 
         ##### IF ORDER PARTIALLY FILLED #####
         if self.side == "SELL" and order_tracked['status'] == 'PARTIALLY_FILLED' and order_tracked['type'] != 'MARKET':
-            amount_left = order_tracked['executedQty'] - self.amount 
+            amount_left = float(order_tracked['executedQty']) - float(self.amount) 
             order = self.place_order_market_partial(amount=amount_left)
             self.side = "BUY"
-            return "Stop Loss partially filled, placing new market order to buy back!" + str(order)
+            return "Stop Loss partially filled, placing new market order to buy back!   " + str(order)
 
         if self.side == "BUY" and order_tracked['status'] == 'PARTIALLY_FILLED' and order_tracked['type'] != 'MARKET':
-            amount_left = order_tracked['executedQty'] - self.amount 
+            amount_left = float(order_tracked['executedQty']) - float(self.amount) 
             order = self.place_order_market_partial(amount=amount_left)
             self.side = "SELL"
-            return "Take Profit partially filled, placing new market order to cut losses!" + str(order) 
+            return "Take Profit partially filled, placing new market order to cut losses!   " + str(order) 
 
 
 
@@ -234,13 +244,12 @@ class Bot:
                             print('sell off at market now !')
                             order=self.place_order_market()
                             print(self.side)
-                        return "Sucessful update of orders with change side, new order :" + str(order)
+                        return "Sucessful update of orders with change side, new order :   " + str(order)
                 else :
                     self.cancel_order()
                     order = self.place_order()
                     return "Sucessful update of orders, new order :" + str(order) 
 
-            
         if self.side == "BUY" :
             if float(order_tracked['price']) >= self.level*(1+self.delta/100)*1.0001 or float(order_tracked['price']) <= self.level*(1+self.delta/100)*0.9999:
                 print('buy_level_or_delta_update')
@@ -254,13 +263,11 @@ class Bot:
                             print('buy back at market now !')
                             order=self.place_order_market()
                             print(self.side)
-                        return "Sucessful update of orders with change side, new order :" + str(order)
+                        return "Sucessful update of orders with change side, new order :   " + str(order)
                 else :
                     self.cancel_order()
                     order = self.place_order()
                     return "Sucessful update of orders, new order :" + str(order)
-
-
 
         # action for amount update 
         if float(order_tracked['origQty']) >= self.amount*1.001 or float(order_tracked['origQty']) <= self.amount*0.999:

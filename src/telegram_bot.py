@@ -55,6 +55,7 @@ class Snitch :
         if self.check_expression(regex1, mess, update) or self.check_expression(regex2, mess, update) or self.check_expression(regex3, mess, update) or self.check_expression(regex4, mess, update):
             data=self.tel_parser(mess, ['asset','base'])
             symb = str( data['asset'] + data['base'])
+            print(symb)
             self.updater.bot.send_message(chat_id=self.chat_id,text='you want to create a bot with these parameters'+' '+str(data))
             if self.check_exist(symb) == False :
                 self.updater.bot.send_message(chat_id=self.chat_id,text='Bot creation process launched for '+symb)

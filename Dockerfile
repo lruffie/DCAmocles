@@ -1,9 +1,9 @@
 FROM python:3.9
 
-
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
+WORKDIR /src
 COPY . .
 
-CMD [ "python", "src/app/main_job.py" ]
+RUN pip install -r requirements.txt
+
+
+CMD [ "python", "src/main_job.py" ]
