@@ -11,8 +11,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 API_KEY_BOT = os.environ['API_KEY_BOT']
-API_KEY_PUBLIC=os.environ["API_KEY_TEST_NET"]
-API_KEY_SECRET=os.environ["API_KEY_TEST_NET_SECRET"]
+API_KEY_PUBLIC=os.environ["API_KEY_MAIN_NET_PUBLIC"]
+API_KEY_SECRET=os.environ["API_KEY_MAIN_NET_SECRET"]
+API_URL=os.environ["API_URL_MAIN_NET"]
 
 #### LOAD PREVIOUS BOTS ####
 path=os.getcwd()
@@ -58,7 +59,7 @@ def create_bot(level, asset, base, amount, side, delta):
     global API_KEY_PUBLIC
     global API_KEY_SECRET
     symb = asset + base
-    new_bot =  binance_bot.Bot(level=level,asset=asset,  base=base, amount=amount, side=side, delta=delta, api_key=API_KEY_PUBLIC, api_secret=API_KEY_SECRET)
+    new_bot =  binance_bot.Bot(level=level,asset=asset,  base=base, amount=amount, side=side, delta=delta, api_key=API_KEY_PUBLIC, api_secret=API_KEY_SECRET, api_url=API_URL)
 
     BotDict.update({str(symb):new_bot})
     return new_bot

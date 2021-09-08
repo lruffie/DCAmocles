@@ -4,13 +4,13 @@ import os
 import json
 import time
 import asyncio
-import binance_listen
 
 load_dotenv()
 
 
-client = Spot(base_url='https://testnet.binance.vision',key=os.environ["API_KEY_TEST_NET"], secret=os.environ["API_KEY_TEST_NET_SECRET"])
-       
+# client = Spot(base_url='https://testnet.binance.vision',key=os.environ["API_KEY_TEST_NET_PUBLIC"], secret=os.environ["API_KEY_TEST_NET_SECRET"])
+client = Spot(base_url='https://api.binance.com',key=os.environ["API_KEY_MAIN_NET_PUBLIC"], secret=os.environ["API_KEY_MAIN_NET_SECRET"])
+
 # place first order :
 
 
@@ -20,13 +20,15 @@ client = Spot(base_url='https://testnet.binance.vision',key=os.environ["API_KEY_
 # order=client.new_order(symbol=symb, side="BUY", type="MARKET", quantity=amount)
 # print(order)
 
-order= client.get_open_orders()
-print(order)
+# order= client.get_open_orders()
+# print(order)
 
 
 info = client.exchange_info()
 
-symb='BTCUSDT'
+# print(info)
+
+symb='SOLBUSD'
 
 for pair in info['symbols']:
     if pair['symbol'] == symb :

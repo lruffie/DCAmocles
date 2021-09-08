@@ -4,7 +4,6 @@ import os
 import json
 import time
 import asyncio
-import binance_listen
 
 load_dotenv()
 

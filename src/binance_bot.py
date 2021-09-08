@@ -9,7 +9,7 @@ import asyncio
 load_dotenv()
 
 class Bot:
-    def __init__(self, level, amount, asset, base, side, delta, api_key, api_secret):
+    def __init__(self, level, amount, asset, base, side, delta, api_key, api_secret, api_url):
         self.level = float(level)
         self.amount = float(amount)
         self.asset = asset
@@ -17,18 +17,20 @@ class Bot:
         self.symbol = (asset + base).upper()
         self.side = side
         self.delta = float(delta) #in percent of current price
-        self.client = Spot(base_url='https://testnet.binance.vision',key=api_key, secret=api_secret)
+        self.client = Spot(base_url=api_url,key=api_key, secret=api_secret)
         info = self.client.exchange_info()
 
         for pair in info['symbols']:
             if pair['symbol'] == self.symbol :
                 self.info = pair
                 self.precision = pair['baseAssetPrecision']
+                self.tick = float(pair['filters'][0]['tickSize'])
 
 
         #disjonction de cas entre sl et buy back au lancement du bot
         # place first order :
         price=self.level*(1-self.delta/100)
+        price = int(price/self.tick)*self.tick
         price = "{:0.0{}f}".format(price, self.precision)
         stopPrice=price
         order=self.client.new_order(symbol=self.symbol, side=self.side, type="STOP_LOSS_LIMIT", quantity=float(self.amount) ,price=float(price), stopPrice=float(stopPrice),timeInForce='GTC')
@@ -71,9 +73,9 @@ class Bot:
 
         if self.side == "BUY":
             price=level*(1+delta/100)
+            price = int(price/self.tick)*self.tick
             price = "{:0.0{}f}".format(price, self.precision)
             stopPrice=price
-            # print(price)
             order=self.client.new_order(symbol=self.symbol, side=self.side, type="STOP_LOSS_LIMIT", quantity=float(self.amount) ,price=price, stopPrice=stopPrice,timeInForce='GTC')
             self.order_id=order['orderId']
             self.order=order
@@ -82,9 +84,9 @@ class Bot:
 
         elif self.side == "SELL":
             price=level*(1-delta/100)
+            price = int(price/self.tick)*self.tick
             price = "{:0.0{}f}".format(price, self.precision)
             stopPrice=price
-            # print(price)
             order=self.client.new_order(symbol=self.symbol, side=self.side, type="STOP_LOSS_LIMIT", quantity=float(self.amount) ,price=price, stopPrice=stopPrice,timeInForce='GTC')
             self.order_id=order['orderId']
             self.order=order
