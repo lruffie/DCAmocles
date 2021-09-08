@@ -146,7 +146,7 @@ class Bot:
         order= self.client.get_orders(symbol=self.symbol)
         return order
 
-    def track_all_all_orders(self):
+    def track_all_open_orders(self):
         "get status of all open Orders (USER_DATA)"
         order= self.client.get_open_orders()
         return order
@@ -182,61 +182,85 @@ class Bot:
         # print(order_tracked['status'])
         print(self.client.ticker_price(symbol=self.symbol))
 
+
+
+
+
         ##### IF ORDER FILLED #####
         if self.side == "SELL" and order_tracked['status'] == 'FILLED' and order_tracked['type'] != 'MARKET':
             self.side = "BUY"
             try :
                 order = self.place_order()
+                return "Stop Loss filled, placing LIMIT order to buy back for :   " + str(order)
             except binance.error.ClientError as err : 
                 print(err.error_message)
                 if err.error_message == 'Stop price would trigger immediately.' :
                     print('buy back at market now !')
                     order = self.place_order_market()
-            return "Stop Loss filled, placing new order to buy back!   " + str(order)
+                    return "Stop Loss filled + immediate trigger alert, placing NEW MARKET order to buy back for :   " + str(order)
 
         if self.side == "BUY" and order_tracked['status'] == 'FILLED' and order_tracked['type'] != 'MARKET':
             self.side = "SELL"
             try :
                 order = self.place_order()
+                return "Take Profit filled, placing LIMIT order to cut losses  for :   " + str(order)
             except binance.error.ClientError as err : 
                 print(err.error_message)
                 if err.error_message == 'Stop price would trigger immediately.' :
                     print('sell off at market now !')
                     order = self.place_order_market()
-            return "Take Profit filled, placing new order to cut losses!   " + str(order)
+                    return "Take Profit filled + immediate trigger alert, placing NEW MARKET order to cut losses  for :   " + str(order)
            
 
 
-        ##### IF ORDER PARTIALLY FILLED #####
+
+
+        ############### IF ORDER PARTIALLY FILLED ###############
         if self.side == "SELL" and order_tracked['status'] == 'PARTIALLY_FILLED' and order_tracked['type'] != 'MARKET':
-            amount_left = float(order_tracked['executedQty']) - float(self.amount) 
+            amount_left = float(self.amount) - float(order_tracked['executedQty']) 
+            print(amount_left)
+            amount_left = round(amount_left,self.precision)
+            print(amount_left)
             order = self.place_order_market_partial(amount=amount_left)
             self.side = "BUY"
-            return "Stop Loss partially filled, placing new market order to buy back!   " + str(order)
+            return "Stop Loss partially filled, placing NEW MARKET order to buy back!   for :   " + str(order)
 
         if self.side == "BUY" and order_tracked['status'] == 'PARTIALLY_FILLED' and order_tracked['type'] != 'MARKET':
-            amount_left = float(order_tracked['executedQty']) - float(self.amount) 
+            amount_left = float(self.amount) - float(order_tracked['executedQty']) 
+            print(amount_left)
+            amount_left = round(amount_left,self.precision)
+            print(amount_left)
             order = self.place_order_market_partial(amount=amount_left)
             self.side = "SELL"
-            return "Take Profit partially filled, placing new market order to cut losses!   " + str(order) 
+            return "Take Profit partially filled, placing NEW MARKET order to cut losses!   for :   " + str(order)
 
 
 
-        ##### IF ORDER CANCELED #####
+
+
+
+        ############### IF ORDER CANCELED ###############
         if order_tracked['status'] == 'CANCELED':
-                self.place_order()
+            order = self.place_order()
+            return "Previous order canceled, placing new order   " + str(order)
                 
 
-        ### USER UPDATES ###
-        # action for level update
+
+
+
+        ############### USER UPDATES ###############
+
+        # action for level and delta update
         level = float(self.level)
         delta = float(self.delta)
+
         if self.side == "SELL" :
             if float(order_tracked['price']) >= level*(1-delta/100)*1.0001 or float(order_tracked['price']) <= level*(1-delta/100)*0.9999:
                 print('sell_level_or_delta_update')
                 if order_tracked['type'] == 'MARKET':
                     try :
                         order = self.place_order()
+                        return "Past order was market buy, new limit order for :   " + str(order)
                     except binance.error.ClientError as err : 
                         print(err.error_code)
                         print(err.error_message)
@@ -244,11 +268,11 @@ class Bot:
                             print('sell off at market now !')
                             order=self.place_order_market()
                             print(self.side)
-                        return "Sucessful update of orders with change side, new order :   " + str(order)
+                            return "Sell at Market now for :   " + str(order)
                 else :
                     self.cancel_order()
                     order = self.place_order()
-                    return "Sucessful update of orders, new order :" + str(order) 
+                    return "Sucessful UPDATE of orders, past order canceled and new order :   " + str(order)
 
         if self.side == "BUY" :
             if float(order_tracked['price']) >= self.level*(1+self.delta/100)*1.0001 or float(order_tracked['price']) <= self.level*(1+self.delta/100)*0.9999:
@@ -256,6 +280,7 @@ class Bot:
                 if order_tracked['type'] == 'MARKET':
                     try :
                         order = self.place_order()
+                        return "Past order was market sell, new limit order for :    " + str(order)
                     except binance.error.ClientError as err : 
                         print(err.error_code)
                         print(err.error_message)
@@ -263,81 +288,23 @@ class Bot:
                             print('buy back at market now !')
                             order=self.place_order_market()
                             print(self.side)
-                        return "Sucessful update of orders with change side, new order :   " + str(order)
+                            return "Buy at Market now for :   " + str(order)
+                        
                 else :
                     self.cancel_order()
                     order = self.place_order()
-                    return "Sucessful update of orders, new order :" + str(order)
+                    return "Sucessful UPDATE of orders, past order canceled and new order :   " + str(order)
+
+
 
         # action for amount update 
         if float(order_tracked['origQty']) >= self.amount*1.001 or float(order_tracked['origQty']) <= self.amount*0.999:
             print('amount_update')
             if order_tracked['type'] == 'MARKET':
                     order = self.place_order()
-                    return ("Sucessful update of amounts, new order :", order) 
+                    return ("Sucessful update of amounts, new order :", str(order)) 
             else :
                 self.cancel_order()
                 order = self.place_order()
-                return ("Sucessful update of amounts, new order :", order) 
+                return ("Sucessful update of amounts, new order :", str(order)) 
 
-
-
-
-
-
-
-
-
-
-
-        #  # action for delta update 
-        # if self.side == "SELL" : 
-        #     if float(order_tracked['price']) >= level*(1-delta/100)*1.01 or float(order_tracked['price']) <= level*(1-delta/100)*0.99 :
-        #         print('sell_delta_update')
-        #         self.cancel_order()
-        #         self.place_order()
-
-        # if self.side == "BUY" : 
-        #     if float(order_tracked['price']) >= level*(1+delta/100)*1.01 or float(order_tracked['price']) <= level*(1+delta/100)*0.99 :
-        #         print('buy_delta_update')
-        #         self.cancel_order()
-        #         self.place_order()
-
-
-            # if self.side == "BUY": #that means that we want to "buy back" to re-enter
-            #     if price <= self.level :
-            #         "do something"
-
-            # if self.side == "SELL": #that means that we want to "sell" to exit
-            #     if price <= self.level :
-            #         "do something"
-
-
-# bot=Bot(level=3300,asset="ETH", base="USDT", side="BUY", api_key=os.environ["API_KEY_BINANCE"],api_secret=os.environ["API_KEY_BINANCE_SECRET"])
-# bot=Bot(level=3100,asset="BTC", amount=0.01, base="BUSD", side="SELL", delta=0.1, api_key=os.environ["API_KEY_TEST_NET"],api_secret=os.environ["API_KEY_TEST_NET_SECRET"])
-
-# print(bot.check_balance())
-
-# print(bot.place_order())
-# time.sleep(2)
-# print(bot.track_order())
-# time.sleep(2)
-# print(bot.track_all_orders())
-# time.sleep(2)
-# print(bot.cancel_all_orders())
-# time.sleep(2)
-# print(bot.cancel_order())
-
-
-
-# print(bot.comparison())
-
-# print(bot.track_all_orders())
-# hb=binance_listen.Heartbeat(asset="ETH", base="USDT",  api_key=os.environ["API_KEY_BINANCE"],api_secret=os.environ["API_KEY_BINANCE_SECRET"])
-
-
-# asyncio.run(hb.main())
-
-# time.sleep(2)
-# print(bot.cancel_all_orders())
-# print("done")

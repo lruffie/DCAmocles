@@ -7,7 +7,6 @@ import os
 import asyncio
 import re
 import time
-# import binance_test 
 
 load_dotenv()
 
@@ -27,7 +26,6 @@ class Snitch :
 
     def handle_message(self, update, context):
             text=str(update.message.text).lower()
-            # self.updater.bot.send_message(chat_id=self.chat_id,text="Sorry I did not understand your request. Press /help for more info.")
             self.updater.bot.send_message(chat_id=self.chat_id,text="Sorry I did not understand your request. Press /help for more info.")
 
     def start_command(self, update, context):
@@ -36,10 +34,29 @@ class Snitch :
 
     def help_command(self, update, context):
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /create to create new bot with syntax : asset:btc_base:usdt_amount:1.0_level:2000.1_delta:0.1')
+        self.updater.bot.send_message(chat_id=self.chat_id,text='Use /getorders to have all open orders')
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /update to update bot params with params symb:btcusdt_level:20000.0 or symb:btcusdt_amount:2.0 or symb:btcusdt_delta:0.1')
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /get to get bot with syntax symb:ethusdt')
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /delete to delete bot with syntax symb:usdt')
         # self.confirmation(update, context)
+
+    def get_orders_command(self, update, context):
+        idx=(str(update.message.text)).find(' ')
+        mess=(str(update.message.text))[idx+1:]
+
+        print(mess)
+        self.updater.bot.send_message(chat_id=self.chat_id,text='You want to get open orders : ')
+        try :
+            info=self.get_orders()
+            print(info)
+            if len(info)==0 :
+                self.updater.bot.send_message(chat_id=self.chat_id,text='No open orders !')
+            else : 
+                for i in info:
+                    self.updater.bot.send_message(chat_id=self.chat_id,text='Open order number ' + str(info.index(i) + 1) + "   " + str(i))
+        except Exception as err:
+            err=str(err)
+            self.updater.bot.send_message(chat_id=self.chat_id,text='Error'+err)
 
     #### MAIN FUNCTIONS ####
     def create_command(self, update, context):
@@ -137,7 +154,7 @@ class Snitch :
 
 
     def get_command(self, update, context):
-        "add exception raising and check for bot exists"
+        "add exception raising"
         idx=(str(update.message.text)).find(' ')
         mess=(str(update.message.text))[idx+1:]
     
@@ -241,6 +258,7 @@ class Snitch :
         self.dp = self.updater.dispatcher
         self.dp.add_handler(CommandHandler("start", self.start_command))
         self.dp.add_handler(CommandHandler("help", self.help_command))
+        self.dp.add_handler(CommandHandler("getorders", self.get_orders_command))
         self.dp.add_handler(CommandHandler("create", self.create_command))
         self.dp.add_handler(CommandHandler("update", self.update_command))
         self.dp.add_handler(CommandHandler("get", self.get_command))

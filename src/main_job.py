@@ -15,9 +15,7 @@ API_KEY_PUBLIC=os.environ["API_KEY_TEST_NET"]
 API_KEY_SECRET=os.environ["API_KEY_TEST_NET_SECRET"]
 
 #### LOAD PREVIOUS BOTS ####
-print(os.listdir())
 path=os.getcwd()
-print(path)
 pickle_file=path+'/store.pkl'
 print(pickle_file)
 
@@ -46,6 +44,13 @@ def get_bots():
     list=[]
     for key, value in BotDict.items():
         list.append([key, "level :",value.level,  "amount :",value.amount,  "side :",value.side,  "delta :",value.delta, "order_price :",value.order['price']])
+    return list
+
+def get_orders():
+    global BotDict
+    list=[]
+    for key, value in BotDict.items(): 
+        list.append([key, "order :", value.track_all_open_orders()])
     return list
 
 def create_bot(level, asset, base, amount, side, delta):
@@ -88,6 +93,7 @@ def delete_bot(symb):
 TelBot=telegram_bot.Snitch(API_KEY_BOT)
 TelBot.check_exist = check_exist
 TelBot.get_bots = get_bots
+TelBot.get_orders = get_orders
 TelBot.create_bot = create_bot
 TelBot.update_bot = update_bot
 TelBot.delete_bot = delete_bot

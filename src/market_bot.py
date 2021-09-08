@@ -24,6 +24,17 @@ order= client.get_open_orders()
 print(order)
 
 
+info = client.exchange_info()
+
+symb='BTCUSDT'
+
+for pair in info['symbols']:
+    if pair['symbol'] == symb :
+        print(pair)
+        info1 = pair
+        precision = pair['baseAssetPrecision']
+
+
 
 
 # price=48000
