@@ -1,9 +1,13 @@
-import subprocess
+# import subprocess
 
-i=0
-while i<10 :
+
+
+while True :
     # subprocess.call("test1.py", shell=True)
-    exec(open("test1.py").read())
-    i+=1
+    try : 
+        exec(open("main_job.py").read())
+    except Exception as err :
+        print(err)
+        pass
 
     

@@ -44,7 +44,7 @@ def get_bots():
     global BotDict
     list=[]
     for key, value in BotDict.items():
-        list.append([key, "level :",value.level,  "amount :",value.amount,  "side :",value.side,  "delta :",value.delta, "order_price :",value.order['price']])
+        list.append([key, "level :",value.level,  "amount :",value.amount,  "side :",value.side,  "delta :",value.delta, "order_price :",value.order['price'], "market_price :",value.price_mkt])
     return list
 
 def get_orders():
@@ -84,10 +84,19 @@ def update_bot(symb, **kwargs):
 
 def delete_bot(symb):
     global BotDict
-    if BotDict[symb].order != 'MARKET' :
-        cancel = BotDict[symb].cancel_all_orders() 
-    BotDict.pop(symb)
-    return cancel
+
+    if BotDict[symb].order['status'] == 'CANCELED' :
+        BotDict.pop(symb)
+        return "Previous order canceled, Bot dropped from list"
+
+    elif BotDict[symb].order['type'] != 'MARKET' :
+        try : 
+            cancel = BotDict[symb].cancel_all_orders() 
+            BotDict.pop(symb)
+            return cancel
+        except Exception as err :
+            BotDict.pop(symb)
+            return "EXCEPTION RAISED  : you should CANCEL ORDERS MANUALLY ! Bot deleted."
 
     # actual bot needs to be updated --> orders cancelled
 
@@ -102,7 +111,7 @@ TelBot.delete_bot = delete_bot
 async def manage_bots():
     global BotDict
     while True:
-        await asyncio.sleep(10)
+        await asyncio.sleep(5)
         print('---------------------------------------')
         # print(BotDict)
         with open( pickle_file, "wb" ) as file_handler:

@@ -33,7 +33,7 @@ class Snitch :
         self.updater.bot.send_message('ze parti')
 
     def help_command(self, update, context):
-        self.updater.bot.send_message(chat_id=self.chat_id,text='Use /create to create new bot with syntax : asset:btc_base:usdt_amount:1.0_level:2000.1_delta:0.1')
+        self.updater.bot.send_message(chat_id=self.chat_id,text='Use /create to create new bot with syntax : asset:btc_base:usdt_amount:1.0_level:2000.1_delta:0.1_side:sell')
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /getorders to have all open orders')
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /update to update bot params with params symb:btcusdt_level:20000.0 or symb:btcusdt_amount:2.0 or symb:btcusdt_delta:0.1')
         self.updater.bot.send_message(chat_id=self.chat_id,text='Use /get to get bot with syntax symb:ethusdt')
@@ -58,19 +58,23 @@ class Snitch :
             err=str(err)
             self.updater.bot.send_message(chat_id=self.chat_id,text='Error'+err)
 
+
+
+
+
     #### MAIN FUNCTIONS ####
     def create_command(self, update, context):
         "add exception raising and check for existing bot and store new bot params and ask for user confirmation"
         idx=(str(update.message.text)).find(' ')
         mess=(str(update.message.text))[idx+1:]
         print(mess)
-        regex1 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]*\.[0-9]+_level:[0-9]*\.[0-9]+_delta:[0-9]*\.[0-9]+'
-        regex2 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]*\.[0-9]+_level:[0-9]+_delta:[0-9]*\.[0-9]+'
-        regex3 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]+_level:[0-9]+_delta:[0-9]*\.[0-9]+'
-        regex4 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]+_level:[0-9]*\.[0-9]+_delta:[0-9]*\.[0-9]+'
+        regex1 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]*\.[0-9]+_level:[0-9]*\.[0-9]+_delta:[0-9]*\.[0-9]+_side:[a-zA-Z]+'
+        regex2 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]*\.[0-9]+_level:[0-9]+_delta:[0-9]*\.[0-9]+_side:[a-zA-Z]+'
+        regex3 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]+_level:[0-9]+_delta:[0-9]*\.[0-9]+_side:[a-zA-Z]+'
+        regex4 = 'asset:[a-zA-Z]+_base:[a-zA-Z]+_amount:[0-9]+_level:[0-9]*\.[0-9]+_delta:[0-9]*\.[0-9]+_side:[a-zA-Z]+'
 
         if self.check_expression(regex1, mess, update) or self.check_expression(regex2, mess, update) or self.check_expression(regex3, mess, update) or self.check_expression(regex4, mess, update):
-            data=self.tel_parser(mess, ['asset','base'])
+            data=self.tel_parser(mess, ['asset','base','side'])
             symb = str( data['asset'] + data['base'])
             print(symb)
             self.updater.bot.send_message(chat_id=self.chat_id,text='you want to create a bot with these parameters'+' '+str(data))
@@ -81,8 +85,8 @@ class Snitch :
                                     asset=data['asset'].upper(),
                                     base=data['base'].upper(),
                                     amount=data['amount'],
-                                    side="SELL",
-                                    delta=data['delta'])
+                                    delta=data['delta'],
+                                    side=data['side'])
                     self.updater.bot.send_message(chat_id=self.chat_id,text='Bot succesfully created !')
                     self.updater.bot.send_message(chat_id=self.chat_id,text=str(create_return))
                 except Exception as err :
@@ -91,6 +95,11 @@ class Snitch :
                 self.updater.bot.send_message(chat_id=self.chat_id,text='Bot already exists please update')
         else : 
             self.updater.bot.send_message(chat_id=self.chat_id,text='Invalid Expression : Check /help section for more info')
+
+
+
+
+
 
 
     def update_command(self, update, context):
@@ -153,6 +162,11 @@ class Snitch :
             self.updater.bot.send_message(chat_id=self.chat_id,text='Invalid Expression : Check /help section for more info')
 
 
+
+
+
+
+
     def get_command(self, update, context):
         "add exception raising"
         idx=(str(update.message.text)).find(' ')
@@ -166,10 +180,14 @@ class Snitch :
                 self.updater.bot.send_message(chat_id=self.chat_id,text='No bots running !')
             else : 
                 for i in info:
-                    self.updater.bot.send_message(chat_id=self.chat_id,text='Bots parameters  :  '+ str(i))
+                    self.updater.bot.send_message(chat_id=self.chat_id,text='Bot parameters  :  '+ str(i))
         except Exception as err:
             err=str(err)
             self.updater.bot.send_message(chat_id=self.chat_id,text='Error'+err)
+
+
+
+
 
     def delete_command(self, update, context):
         "ask for user confirmation"
@@ -192,13 +210,27 @@ class Snitch :
         else : 
             self.updater.bot.send_message(chat_id=self.chat_id,text='Invalid Expression : Check /help section for more info')
 
+
+
+
     def stop_command(self, update, context):
         "add regex control and exception raising and check for bot exists and ask for confirmation"
         self.updater.bot.send_message(chat_id=self.chat_id,text='See you in the next life !')
         self.updater.stop()
 
+
+
+
     def error(self, update, context):
         print('error')
+
+
+
+
+
+
+
+
 
     #### TOOLS and SPECIFIC FUNCTIONS ####
     def check_expression(self, regex, input, update):
